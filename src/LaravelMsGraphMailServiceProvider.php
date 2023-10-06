@@ -26,12 +26,10 @@ class LaravelMsGraphMailServiceProvider extends PackageServiceProvider
     {
         $this->app->bind(MicrosoftGraphApiService::class, function () {
             //throw exceptions when config is missing
-            throw_unless(filled(config('mail.mailers.microsoft-graph.tenant_id')), ConfigurationMissing::tenantId());
             throw_unless(filled(config('mail.mailers.microsoft-graph.client_id')), ConfigurationMissing::clientId());
             throw_unless(filled(config('mail.mailers.microsoft-graph.client_secret')), ConfigurationMissing::clientSecret());
 
             return new MicrosoftGraphApiService(
-                tenantId: config('mail.mailers.microsoft-graph.tenant_id', ''),
                 clientId: config('mail.mailers.microsoft-graph.client_id', ''),
                 clientSecret: config('mail.mailers.microsoft-graph.client_secret', ''),
                 accessTokenTtl: config('mail.mailers.microsoft-graph.access_token_ttl', 3000),
@@ -39,12 +37,15 @@ class LaravelMsGraphMailServiceProvider extends PackageServiceProvider
         });
 
         Mail::extend('microsoft-graph', function (array $config) {
-            throw_unless(filled($config['from']['address'] ?? []), ConfigurationMissing::fromAddress());
-
             return new MicrosoftGraphTransport(
-                app()->make(MicrosoftGraphApiService::class),
-                $config['from']['address']
-            );
+                app()->make(MicrosoftGraphApiService::class));
         });
+
+        // allows for override at runtime
+        Mail::macro('setTenantId', function($tenantId){
+            $this->getSymfonyTransport()->setTenantId($tenantId);
+            return $this;
+        });
+
     }
 }

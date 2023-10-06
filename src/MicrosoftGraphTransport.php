@@ -16,7 +16,7 @@ use Symfony\Component\Mime\MessageConverter;
 
 class MicrosoftGraphTransport extends AbstractTransport
 {
-    public function __construct(protected MicrosoftGraphApiService $microsoftGraphApiService, protected string $from, EventDispatcherInterface $dispatcher = null, LoggerInterface $logger = null)
+    public function __construct(protected MicrosoftGraphApiService $microsoftGraphApiService, EventDispatcherInterface $dispatcher = null, LoggerInterface $logger = null)
     {
         parent::__construct($dispatcher, $logger);
     }
@@ -24,6 +24,13 @@ class MicrosoftGraphTransport extends AbstractTransport
     public function __toString(): string
     {
         return 'microsoft+graph+api://';
+    }
+
+    public function setTenantId(string $tenantId): self
+    {
+        $this->microsoftGraphApiService->tenantId = $tenantId;
+
+        return $this;
     }
 
     /**
@@ -55,7 +62,14 @@ class MicrosoftGraphTransport extends AbstractTransport
             'saveToSentItems' =>  config('mail.mailers.microsoft-graph.save_to_sent_items', false),
         ];
 
-        $this->microsoftGraphApiService->sendMail($this->from, $payload);
+
+        $this->microsoftGraphApiService->sendMail($this->getFromAddress($email->getFrom()), $payload);
+    }
+
+    protected function getFromAddress($fromArray){
+
+        $from = $fromArray[0];
+        return $from->getAddress();
     }
 
     /**
