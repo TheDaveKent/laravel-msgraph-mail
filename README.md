@@ -5,6 +5,11 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/innoge/laravel-msgraph-mail/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/innoge/laravel-msgraph-mail/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/innoge/laravel-msgraph-mail.svg?style=flat-square)](https://packagist.org/packages/innoge/laravel-msgraph-mail)
 
+This is a branch from InnoGE/laravel-msgraph-mail
+
+branched as we wanted to be able to switch the tenantId depending on logged in users for our SASS product.
+
+
 This package provides a Microsoft Graph mail driver for Laravel. It is an alternative when you don't want to use the
 deprecated and unsecure Basic Auth SMTP driver with Microsoft Office 365.
 
