@@ -46,6 +46,10 @@ class LaravelMsGraphMailServiceProvider extends PackageServiceProvider
             $this->getSymfonyTransport()->setTenantId($tenantId);
             return $this;
         });
+        Mail::macro('setEmailQueue', function($emailQueue){
+            $this->getSymfonyTransport()->setEmailQueue($emailQueue);
+            return $this;
+        });
 
     }
 }

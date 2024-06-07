@@ -16,6 +16,9 @@ use Symfony\Component\Mime\MessageConverter;
 
 class MicrosoftGraphTransport extends AbstractTransport
 {
+
+    private $emailQueue;
+
     public function __construct(protected MicrosoftGraphApiService $microsoftGraphApiService, EventDispatcherInterface $dispatcher = null, LoggerInterface $logger = null)
     {
         parent::__construct($dispatcher, $logger);
@@ -33,6 +36,14 @@ class MicrosoftGraphTransport extends AbstractTransport
         return $this;
     }
 
+    public function setEmailQueue($emailQueue): self
+    {
+        $this->emailQueue = $emailQueue;
+
+        return $this;
+    }
+
+
     /**
      * @throws RequestException
      */
@@ -46,24 +57,29 @@ class MicrosoftGraphTransport extends AbstractTransport
         [$attachments, $html] = $this->prepareAttachments($email, $html);
 
         $payload = [
-            'message' => [
-                'subject' => $email->getSubject(),
-                'body' => [
-                    'contentType' => $html === null ? 'Text' : 'HTML',
-                    'content' => $html ?: $email->getTextBody(),
-                ],
-                'toRecipients' => $this->transformEmailAddresses($this->getRecipients($email, $envelope)),
-                'ccRecipients' => $this->transformEmailAddresses(collect($email->getCc())),
-                'bccRecipients' => $this->transformEmailAddresses(collect($email->getBcc())),
-                'replyTo' => $this->transformEmailAddresses(collect($email->getReplyTo())),
-                'sender' => $this->transformEmailAddress($envelope->getSender()),
-                'attachments' => $attachments,
+            'subject' => $email->getSubject(),
+            'body' => [
+                'contentType' => $html === null ? 'Text' : 'HTML',
+                'content' => $html ?: $email->getTextBody(),
             ],
-            'saveToSentItems' =>  config('mail.mailers.microsoft-graph.save_to_sent_items', false),
+            'toRecipients' => $this->transformEmailAddresses($this->getRecipients($email, $envelope)),
+            'ccRecipients' => $this->transformEmailAddresses(collect($email->getCc())),
+            'bccRecipients' => $this->transformEmailAddresses(collect($email->getBcc())),
+            'replyTo' => $this->transformEmailAddresses(collect($email->getReplyTo())),
+            'sender' => $this->transformEmailAddress($envelope->getSender()),
+            'attachments' => $attachments,
         ];
 
+        $draftMessage = $this->microsoftGraphApiService->draft($this->getFromAddress($email->getFrom()), $payload);
 
-        $this->microsoftGraphApiService->sendMail($this->getFromAddress($email->getFrom()), $payload);
+        $decodedMessage = json_decode($draftMessage->getBody()->getContents());
+
+        $messageId = $decodedMessage->id;
+
+        $this->emailQueue->update(['immutable_message_id' => $decodedMessage->internetMessageId]);
+    
+        $this->microsoftGraphApiService->send($this->getFromAddress($email->getFrom()),$messageId);
+      
     }
 
     protected function getFromAddress($fromArray){

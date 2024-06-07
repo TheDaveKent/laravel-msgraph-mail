@@ -28,9 +28,32 @@ class MicrosoftGraphApiService
             ->throw();
     }
 
+    /**
+     * @throws RequestException
+     */
+    public function send(string $from, string $id): Response
+    {
+        return $this->getBaseRequest()
+            ->post("/users/{$from}/messages/{$id}/send")
+            ->throw()
+            ;
+    }
+
+    /**
+     * @throws RequestException
+     */
+    public function draft(string $from, array $payload): Response
+    {
+        return $this->getBaseRequest()
+            ->post("/users/{$from}/messages", $payload)
+            ->throw()
+            ;
+    }
+
     protected function getBaseRequest(): PendingRequest
     {
         return Http::withToken($this->getAccessToken())
+            ->withHeader('prefer', 'IdType="ImmutableId"')
             ->baseUrl('https://graph.microsoft.com/v1.0');
     }
 
