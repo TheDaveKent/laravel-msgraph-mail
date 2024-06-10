@@ -76,7 +76,7 @@ class MicrosoftGraphTransport extends AbstractTransport
 
         $messageId = $decodedMessage->id;
 
-        $this->emailQueue->update(['immutable_message_id' => $decodedMessage->internetMessageId]);
+        $this->emailQueue?->update(['immutable_message_id' => $decodedMessage->internetMessageId]);
     
         $this->microsoftGraphApiService->send($this->getFromAddress($email->getFrom()),$messageId);
       
