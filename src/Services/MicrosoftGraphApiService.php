@@ -24,6 +24,7 @@ class MicrosoftGraphApiService
     public function sendMail(string $from, array $payload): Response
     {
         return $this->getBaseRequest()
+            ->withHeader('X-AnchorMailbox', $from)
             ->post("/users/{$from}/sendMail", $payload)
             ->throw();
     }
@@ -34,6 +35,7 @@ class MicrosoftGraphApiService
     public function send(string $from, string $id): Response
     {
         return $this->getBaseRequest()
+            ->withHeader('X-AnchorMailbox', $from)
             ->post("/users/{$from}/messages/{$id}/send")
             ->throw()
             ;
@@ -45,6 +47,7 @@ class MicrosoftGraphApiService
     public function draft(string $from, array $payload): Response
     {
         return $this->getBaseRequest()
+            ->withHeader('X-AnchorMailbox', $from)
             ->post("/users/{$from}/messages", $payload)
             ->throw()
             ;
